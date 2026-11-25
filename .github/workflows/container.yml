@@ -1,0 +1,73 @@
+# Build the ROS 2 container image of RKO-LIO on every push, test it, and publish it only if the test passes.
+#
+# Tags published to ghcr.io/transmisiones-centauro/rko_lio:
+#   <branch>      the latest build of each branch (for example: master, container-ci)
+#   sha-<commit>  every build, for reproducibility
+#   latest        only for builds of the default branch
+
+name: Container image
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: container-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE: ghcr.io/transmisiones-centauro/rko_lio
+  TEST_IMAGE: rko_lio:test
+
+jobs:
+  build-test-push:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        # The ROS 2 desktop-full image needs several GB; the runner has little free space by default.
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: Compute image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build the image
+        run: |
+          docker build -f container/Dockerfile \
+            --label org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }} \
+            --label org.opencontainers.image.revision=${{ github.sha }} \
+            -t "$TEST_IMAGE" .
+
+      - name: Test the image
+        run: docker run --rm "$TEST_IMAGE" bash /test/run_test.sh
+
+      - name: Log in to the GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish the image
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          for tag in $TAGS; do
+            docker tag "$TEST_IMAGE" "$tag"
+            docker push "$tag"
+          done

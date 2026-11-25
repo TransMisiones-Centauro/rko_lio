@@ -1,0 +1,7 @@
+# Configuration for the functional test (container/test/run_test.sh).
+imu_topic: imu_raw
+lidar_topic: points_raw
+base_frame: base_link
+# The synthetic IMU and LiDAR are at the origin of base_link.
+extrinsic_imu2base_quat_xyzw_xyz: [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+extrinsic_lidar2base_quat_xyzw_xyz: [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
