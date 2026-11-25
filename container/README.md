@@ -41,14 +41,14 @@ Save the container as a new image and, optionally, publish it to the GitHub Cont
 To push, you must log in first with a GitHub personal access token that has the `write:packages` scope:
 
 ```bash
-$ENGINE commit rko_lio ghcr.io/ecervera/rko_lio:latest
+$ENGINE commit rko_lio ghcr.io/transmisiones-centauro/rko_lio:latest
 $ENGINE rm rko_lio
 
 $ENGINE login ghcr.io
-$ENGINE push ghcr.io/ecervera/rko_lio:latest
+$ENGINE push ghcr.io/transmisiones-centauro/rko_lio:latest
 ```
 
-Replace `ghcr.io/ecervera/rko_lio` with your own registry and namespace if needed.
+Replace `ghcr.io/transmisiones-centauro/rko_lio` with your own registry and namespace if needed.
 
 ## Run the container
 
@@ -67,7 +67,7 @@ $ENGINE run -it --rm --name rko_lio \
     --env="QT_X11_NO_MITSHM=1" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     --device /dev/dri \
-    ghcr.io/ecervera/rko_lio:latest
+    ghcr.io/transmisiones-centauro/rko_lio:latest
 ```
 
 Useful additional options:
